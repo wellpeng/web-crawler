@@ -4,12 +4,10 @@
  * @constructor
  */
 var StoreDevtools = function () {
-
 };
 
 StoreDevtools.prototype = {
 	createSitemap: function (sitemap, callback) {
-
 		var request = {
 			createSitemap: true,
 			sitemap: JSON.parse(JSON.stringify(sitemap))
@@ -24,7 +22,6 @@ StoreDevtools.prototype = {
 		this.createSitemap(sitemap, callback);
 	},
 	deleteSitemap: function (sitemap, callback) {
-
 		var request = {
 			deleteSitemap: true,
 			sitemap: JSON.parse(JSON.stringify(sitemap))
@@ -34,13 +31,11 @@ StoreDevtools.prototype = {
 		});
 	},
 	getAllSitemaps: function (callback) {
-
 		var request = {
 			getAllSitemaps: true
 		};
 
 		chrome.runtime.sendMessage(request, function (response) {
-
 			var sitemaps = [];
 
 			for (var i in response) {

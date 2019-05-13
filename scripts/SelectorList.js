@@ -1,10 +1,9 @@
 var SelectorList = function (selectors) {
-
 	if(selectors === undefined) {
 		return;
 	}
 
-	for(var i = 0;i<selectors.length;i++) {
+	for(var i = 0; i < selectors.length; i++) {
 		this.push(selectors[i]);
 	}
 };
@@ -12,7 +11,6 @@ var SelectorList = function (selectors) {
 SelectorList.prototype = new Array;
 
 SelectorList.prototype.push = function(selector) {
-
 	if(!this.hasSelector(selector.id)) {
 		if(!(selector instanceof Selector)) {
 			selector = new Selector(selector);
@@ -22,7 +20,6 @@ SelectorList.prototype.push = function(selector) {
 };
 
 SelectorList.prototype.hasSelector = function(selectorId) {
-
 	if(selectorId instanceof Object) {
 		selectorId = selectorId.id;
 	}
@@ -41,7 +38,6 @@ SelectorList.prototype.hasSelector = function(selectorId) {
  * @returns {Array}
  */
 SelectorList.prototype.getAllSelectors = function(parentSelectorId) {
-
 	if(parentSelectorId === undefined) {
 		return this;
 	}
@@ -125,9 +121,7 @@ SelectorList.prototype.getOnePageSelectors = function (selectorId) {
 
 	// recursively find all parent selectors that could lead to the page where selectorId is used.
 	var findParentSelectors = function(selector) {
-
 		selector.parentSelectors.forEach(function(parentSelectorId) {
-
 			if(parentSelectorId === "_root") return;
 			var parentSelector = this.getSelector(parentSelectorId);
 			if(resultList.indexOf(parentSelector) !== -1) return;
@@ -150,7 +144,6 @@ SelectorList.prototype.getOnePageSelectors = function (selectorId) {
  * @param parentSelectorId
  */
 SelectorList.prototype.getSinglePageAllChildSelectors = function(parentSelectorId) {
-
 	var resultList = new SelectorList();
 	var addChildSelectors = function(parentSelector) {
 		if(parentSelector.willReturnElements()) {
@@ -170,7 +163,6 @@ SelectorList.prototype.getSinglePageAllChildSelectors = function(parentSelectorI
 };
 
 SelectorList.prototype.willReturnMultipleRecords = function(selectorId) {
-	
 	// handle reuqested selector
 	var selector = this.getSelector(selectorId);
 	if(selector.willReturnMultipleRecords() === true) {
@@ -185,7 +177,6 @@ SelectorList.prototype.willReturnMultipleRecords = function(selectorId) {
 			return true;
 		}
 	}
-	
 	return false;
 };
 
@@ -217,7 +208,6 @@ SelectorList.prototype.getSelectorById = function (selectorId) {
  * @returns string
  */
 SelectorList.prototype.getCSSSelectorWithinOnePage = function (selectorId, parentSelectorIds) {
-
 	var CSSSelector = this.getSelector(selectorId).selector;
 	var parentCSSSelector = this.getParentCSSSelectorWithinOnePage(parentSelectorIds);
 	CSSSelector = parentCSSSelector+CSSSelector;
@@ -231,17 +221,14 @@ SelectorList.prototype.getCSSSelectorWithinOnePage = function (selectorId, paren
  * @returns string
  */
 SelectorList.prototype.getParentCSSSelectorWithinOnePage = function (parentSelectorIds) {
-
 	var CSSSelector = "";
 
 	for (var i = parentSelectorIds.length-1; i > 0; i--) {
-
 		var parentSelectorId = parentSelectorIds[i];
 		var parentSelector = this.getSelector(parentSelectorId);
 		if(parentSelector.willReturnElements()) {
 			CSSSelector = parentSelector.selector + " " + CSSSelector;
-		}
-		else {
+		} else {
 			break;
 		}
 	}
@@ -250,14 +237,12 @@ SelectorList.prototype.getParentCSSSelectorWithinOnePage = function (parentSelec
 };
 
 SelectorList.prototype.hasRecursiveElementSelectors = function() {
-
 	var RecursionFound = false;
 
 	this.forEach(function(topSelector) {
 		var visitedSelectors = [];
 
 		var checkRecursion = function(parentSelector) {
-
 			// already visited
 			if(visitedSelectors.indexOf(parentSelector) !== -1) {
 				RecursionFound = true;
@@ -278,4 +263,3 @@ SelectorList.prototype.hasRecursiveElementSelectors = function() {
 
 	return RecursionFound;
 };
-

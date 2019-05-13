@@ -1,22 +1,18 @@
 <form class="form-horizontal" role="form" id="edit-selector">
-
 	<div class="form-group">
-		<label for="selectorId" class="col-lg-1 control-label">任务字段名</label>
-
+		<label for="selectorId" class="col-lg-1 control-label">任务字段名 <font color="red">*</font></label>
 		<div class="col-lg-10">
 			<input type="text" class="form-control" name="id" id="selectorId" placeholder="任务字段名" value="{{selector.id}}">
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="selectorId" class="col-lg-1 control-label">任务名称</label>
-
+		<label for="selectorId" class="col-lg-1 control-label">任务名称 <font color="red">*</font></label>
 		<div class="col-lg-10">
 			<input type="text" class="form-control" name="name" id="selectorName" placeholder="任务名称" value="{{selector.name}}">
 		</div>
 	</div>
 	<div class="form-group">
 		<label for="type" class="col-lg-1 control-label">选择器类型</label>
-
 		<div class="input-group col-lg-10">
 			<select class="form-control" id="type" name="type">
 				{{#selectorTypes}}
@@ -28,7 +24,6 @@
 
 	<div class="form-group">
 		<label for="selector" class="col-lg-1 control-label">抽取规则</label>
-
 		<div class="col-lg-10">
 			<div class="input-group">
 				  <span class="input-group-btn">
@@ -43,7 +38,6 @@
 
 	<div class="form-group feature feature-clickElementSelector">
 		<label for="clickElementSelector" class="col-lg-1 control-label">点击选择器</label>
-
 		<div class="col-lg-10">
 			<div class="input-group">
 				  <span class="input-group-btn">
@@ -86,7 +80,6 @@
 	<!-- ClickType -->
 	<div class="form-group feature feature-clickType">
 		<label for="clickType" class="col-lg-1 control-label">点击类型</label>
-
 		<div class="input-group col-lg-10">
 			<select class="form-control" id="clickType" name="clickType">
 				<option value="clickOnce">点击一次 (如翻页, tabs)</option>
@@ -143,7 +136,6 @@
 
 	<div class="form-group feature feature-regex">
 		<label for="regex" class="col-lg-1 control-label">正则表达式</label>
-
 		<div class="col-lg-10">
 			<input type="text" class="form-control" name="regex" id="regex" placeholder="regex" value="{{selector.regex}}">
 		</div>
@@ -151,7 +143,6 @@
 
 	<div class="form-group feature feature-extractAttribute">
 		<label for="extractAttribute" class="col-lg-1 control-label">属性名</label>
-
 		<div class="col-lg-10">
 			<input type="text" class="form-control" name="extractAttribute" id="extractAttribute" placeholder="采集元素的属性值" value="{{selector.extractAttribute}}">
 		</div>
@@ -159,7 +150,6 @@
 
 	<div class="form-group feature feature-delay">
 		<label for="delay" class="col-lg-1 control-label">延迟 (ms)</label>
-
 		<div class="col-lg-10">
 			<input type="text" class="form-control" name="delay" id="delay" placeholder="延迟" value="{{selector.delay}}">
 		</div>
@@ -167,7 +157,6 @@
 
 	<div class="form-group">
 		<label for="parentSelectors" class="col-lg-1 control-label">父任务</label>
-
 		<div class="input-group col-lg-10">
 			<select multiple class="form-control" id="parentSelectors" name="parentSelectors">
 				{{#selectorIds}}
@@ -179,7 +168,6 @@
 
 	<div class="form-group feature feature-columns">
 		<label class="col-lg-1 control-label">表格列</label>
-
 		<div class="col-lg-10">
 			<table class="table table-bordered table-condensed">
 				<thead>
@@ -210,7 +198,6 @@
 
 	<div class="form-group">
 		<div class="col-lg-offset-1 col-lg-10">
-
 		</div>
 	</div>
 </form>

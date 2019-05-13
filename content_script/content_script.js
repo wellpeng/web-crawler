@@ -1,51 +1,49 @@
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-
-	console.log("content:chrome.runtime.onMessage", request);
+	console.log("content_script:chrome.runtime.onMessage", request);
 
 	if (request.extractData) {
-		console.log("received data extraction request", request);
+		console.log("content_script:received data extraction request", request);
+
 		var extractor = new DataExtractor(request);
 		var deferredData = extractor.getData();
 		deferredData.done(function(data) {
-			console.log("dataextractor data", data);
+			console.log("content_script:dataextractor data", data);
 			sendResponse(data);
 		});
 		return true;
 	} else if (request.previewSelectorData) {
-		console.log("received data-preview extraction request", request);
+		console.log("content_script:received data-preview extraction request", request);
+
 		var extractor = new DataExtractor(request);
 		var deferredData = extractor.getSingleSelectorData(
 				request.parentSelectorIds, request.selectorId);
 		deferredData.done(function(data) {
-			console.log("dataextractor data", data);
+			console.log("content_script:dataextractor data", data);
 			sendResponse(data);
 		});
 		return true;
 	}
 	// Universal ContentScript communication handler
 	else if (request.contentScriptCall) {
-
 		var contentScript = getContentScript("ContentScript");
-
-		console.log("received ContentScript request", request);
+		console.log("content_script:received ContentScript request", request);
 
 		var deferredResponse = contentScript[request.fn](request.request);
 		deferredResponse.done(function(response) {
 			sendResponse(response);
 		});
-
 		return true;
-	}
-
-	else if (request.getPageDetails) {
-		//为了数据更好看，去掉浮窗和iframe嵌套的信息
+	} else if (request.getPageDetails) {
+		// 为了数据更好看，去掉浮窗和 iframe 嵌套的信息
 		console.log(document);
+
 		var linksGrabber = new LinksGrabber(document);
 		linksGrabber.hideStubbornElements();
 		document = linksGrabber;
 	    linksGrabber = undefined;
-	    console.log("remove attributes");
-	    console.log(document);
+
+	    console.log("content_script:remove attributes", document);
+
 		var size = {
 				width: Math.max(
 					document.documentElement.clientWidth,

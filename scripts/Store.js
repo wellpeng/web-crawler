@@ -13,11 +13,10 @@ StoreScrapeResultWriter.prototype = {
     writeDocs: function(docs, callback) {
 		if(docs.length === 0) {
 			callback();
-		}
-		else {
+		} else {
 			this.db.bulkDocs({docs:docs}, function(err, response) {
 				if(err !== null) {
-					console.log("Error while persisting scraped data to db", err);
+					console.log("store:Error while persisting scraped data to db", err);
 				}
 				callback();
 			});
@@ -26,7 +25,6 @@ StoreScrapeResultWriter.prototype = {
 };
 
 Store.prototype = {
-	
 	sanitizeSitemapDataDbName: function(dbName) {
 		return 'sitemap-data-'+dbName.replace(/[^a-z0-9_\$\(\)\+\-/]/gi, "_");
 	},
@@ -35,11 +33,9 @@ Store.prototype = {
 		return this.config.dataDb+dbName;
 	},
 	getSitemapDataDb: function(sitemapId) {
-		
 		var dbLocation = this.getSitemapDataDbLocation(sitemapId);
         return new PouchDB(dbLocation);
     },
-	
 	/**
 	 * creates or clears a sitemap db
 	 * @param {type} sitemapId
@@ -55,13 +51,11 @@ Store.prototype = {
 			callback(dbWriter);
 		});
 	},
-
     createSitemap: function (sitemap, callback) {
-
         var sitemapJson = JSON.parse(JSON.stringify(sitemap));
 		delete sitemapJson.siteObj;
         if(!sitemap._id) {
-            console.log("cannot save sitemap without an id", sitemap);
+            console.log("store:cannot save sitemap without an id", sitemap);
         }
 
         this.sitemapDb.put(sitemapJson, function(sitemap, err, response) {
@@ -75,7 +69,6 @@ Store.prototype = {
         this.createSitemap(sitemap, callback);
     },
     deleteSitemap: function (sitemap, callback) {
-
         sitemap = JSON.parse(JSON.stringify(sitemap));
 
         this.sitemapDb.remove(sitemap, function(err, response){
@@ -89,7 +82,6 @@ Store.prototype = {
 		}.bind(this));
     },
     getAllSitemaps: function (callback) {
-
         this.sitemapDb.allDocs({include_docs: true}, function(err, response) {
             var sitemaps = [];
             for (var i in response.rows) {
@@ -103,9 +95,7 @@ Store.prototype = {
             callback(sitemaps);
         });
     },
-
     getSitemapData: function (sitemap, callback) {
-
         var db = this.getSitemapDataDb(sitemap._id);
         db.allDocs({include_docs: true}, function(err, response) {
             var responseData = [];
@@ -118,7 +108,7 @@ Store.prototype = {
     },
 	// @TODO make this call lighter
     sitemapExists: function (sitemapId, callback) {
-    	console.log("store receive sitemapExists");
+    	console.log("store:receive sitemapExists");
         this.getAllSitemaps(function (sitemaps) {
             var sitemapFound = false;
             for (var i in sitemaps) {
@@ -130,7 +120,7 @@ Store.prototype = {
         });
     },
     createSitemapUpload: function (sitemap, callback) {
-    	console.log("store receive saveSitemapExport");
+    	console.log("store:receive saveSitemapExport");
     	var sitemapJson = JSON.stringify(sitemap);
     	if(this.config.crawlerDb!=null && this.config.crawlerDb!=""){
     		var uploadUrl = this.config.crawlerDb;

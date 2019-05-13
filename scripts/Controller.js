@@ -1,5 +1,4 @@
 var SitemapController = function (options) {
-
 	for (var i in options) {
 		this[i] = options[i];
 	}
@@ -7,10 +6,9 @@ var SitemapController = function (options) {
 };
 
 SitemapController.prototype = {
-
-	backgroundScript: getBackgroundScript("DevTools"),
-	contentScript: getContentScript("DevTools"),
-
+	backgroundScript : getBackgroundScript("DevTools"),
+	contentScript : getContentScript("DevTools"),
+    _console : chrome.extension.getBackgroundPage().console,
 	control: function (controls) {
 		var controller = this;
 
@@ -27,7 +25,6 @@ SitemapController.prototype = {
 			}
 		}
 	},
-
 	/**
 	 * Loads templates for ICanHaz
 	 */
@@ -51,6 +48,7 @@ SitemapController.prototype = {
 			'SitemapSelectorGraph',
 			'DataPreview'
 		];
+
 		var templatesLoaded = 0;
 		var cbLoaded = function (templateId, template) {
 			templatesLoaded++;
@@ -58,14 +56,13 @@ SitemapController.prototype = {
 			if (templatesLoaded === templateIds.length) {
 				cbAllTemplatesLoaded();
 			}
-		}
+		};
 
 		templateIds.forEach(function (templateId) {
 			$.get(this.templateDir + templateId + '.html', cbLoaded.bind(this, templateId));
 		}.bind(this));
 	},
-	
-	loadSelectorsTypes : function(){
+	loadSelectorsTypes : function() {
 		var selectorsTypes = [
 			{
 				type: 'SelectorText',
@@ -114,10 +111,15 @@ SitemapController.prototype = {
 		];
 		return selectorsTypes;
 	},
-
+    getCurrentUrl : function() {
+		var __this = this;
+		chrome.tabs.getSelected(null, function (tab) {
+            __this.currentUrl = tab.url;
+		});
+	},
 	init: function () {
-		
 		this.loadTemplates(function () {
+            this.getCurrentUrl();
 			// currently viewed objects
 			this.clearState();
 
@@ -196,7 +198,6 @@ SitemapController.prototype = {
 				"button[action=submit-sitemap-upload-back]": {
 					click: this.showSitemapSelectorList
 				},
-				
 				// @TODO move to tr
 				'#selector-tree tbody tr': {
 					click: this.showChildSelectors
@@ -265,7 +266,6 @@ SitemapController.prototype = {
 			this.showSitemaps();
 		}.bind(this));
 	},
-
 	clearState: function () {
 		this.state = {
 			// sitemap that is currently open
@@ -276,15 +276,13 @@ SitemapController.prototype = {
 			currentSelector: null
 		};
 	},
-
 	setStateEditSitemap: function (sitemap) {
 		this.state.currentSitemap = sitemap;
 		this.state.editSitemapBreadcumbsSelectors = [
-			{id: '_root',name:sitemap.name}
+			{id: '_root', name: sitemap.name}
 		];
 		this.state.currentParentSelectorId = '_root';
 	},
-
 	setActiveNavigationButton: function (navigationId) {
 		$(".nav .active").removeClass("active");
 		$("#" + navigationId + "-nav-button").closest("li").addClass("active");
@@ -303,32 +301,28 @@ SitemapController.prototype = {
 			$("#create-sitemap-nav-button").closest("li").addClass('active');
 		}
 	},
-
 	/**
 	 * Simple info popup for sitemap start url input field
 	 */
 	initMultipleStartUrlHelper: function () {
 		$("#startUrl")
 			.popover({
-				title: '多个入口URL',
+				title: '多个入口 URL',
 				html: true,
-				content: "你可以创建一个正则范围的入口URL，例如:<br />http://example.com/[1-100].html",
+				content: "你可以创建一个正则范围的入口 URL，例如:<br />http://example.com/[1-100].html",
 				placement: 'bottom'
 			})
 			.blur(function () {
 				$(this).popover('hide');
 			});
 	},
-
 	/**
 	 * Returns bootstrapValidator object for current form in viewport
 	 */
 	getFormValidator: function() {
-
 		var validator = $('#viewport form').data('bootstrapValidator');
 		return validator;
 	},
-
 	/**
 	 * Returns whether current form in the viewport is valid
 	 * @returns {Boolean}
@@ -345,23 +339,23 @@ SitemapController.prototype = {
 		var valid = validator.isValid();
 		return valid;
 	},
-
 	/**
 	 * Add validation to sitemap creation or editing form
 	 */
 	initSitemapValidation: function() {
-		//给名字的输入框添加onblur事件，跟着修改ID
-		$("#viewport form input[name=_name]").blur(function(){
+		// 给名字的输入框添加 onblur 事件，跟着修改 ID
+		$("#viewport form input[name=_name]").blur(function() {
 		  var name = $("#viewport form input[name=_name]").val();
-		  if(name!=null && name!=""){
+		  if(name != null && name != "") {
 		  	var id = $("#viewport form input[name=_id]").val();
-		  	if(id==null || id == ""){
-		  		//默认先将name的md5值赋值
+		  	if(id == null || id == "") {
+		  		// 默认先将 name 的 md5 值赋值
 		  		id = md5(name);
 				$("#viewport form input[name=_id]").val(id);
 		  	}
 		  }
 		});
+
 		$('#viewport form').bootstrapValidator({
 			fields: {
 				"_name": {
@@ -390,10 +384,10 @@ SitemapController.prototype = {
 		            },
 		            regexp: {
 		              regexp: /^[a-z][a-z0-9_$()+\-/]+$/,
-		              message: '网站ID只支持字母 (a-z), 数字 (0-9), 或者 _, $, (, ), +, -, / 。 并且必须以字母开头。'
+		              message: '网站 ID 只支持字母 (a-z), 数字 (0-9), 或者 _, $, (, ), +, -, /。 并且必须以字母开头。'
 		            },
 		            callback: {
-		              message: '网站ID已经存在',
+		              message: '网站 ID 已经存在',
 		              callback: function (value, validator) {
 		                return true
 		              }
@@ -403,17 +397,29 @@ SitemapController.prototype = {
 				"startUrl[]": {
 					validators: {
 						notEmpty: {
-							message: '入口URL不能为空'
+							message: '入口 URL 不能为空'
 						},
 						uri: {
-							message: '入口URL的格式不正确'
+							message: '入口 URL 的格式不正确'
 						}
 					}
 				}
 			}
 		});
 	},
-
+    domainName: function(url) {
+		var sign = "://";
+		var pos = url.indexOf(sign); 
+		if(pos >= 0) {
+			pos += sign.length;
+			url = url.slice(pos);
+		}
+		var array = url.split(".");
+		if(array[0] === "www") {
+			return array[1];
+		}
+		return array[0];
+	},
 	showCreateSitemap: function () {
 		this.setActiveNavigationButton('create-sitemap-create');
 		var sitemapForm = ich.SitemapCreate();
@@ -421,29 +427,35 @@ SitemapController.prototype = {
 		this.initMultipleStartUrlHelper();
 		this.initSitemapValidation();
 
+		var _domain = this.domainName(this.currentUrl);
+
+        $("#viewport form input[name=_name]").val(_domain);
+        $("#viewport form input[name=_id]").val('md5_' + md5(_domain));
+        $("#viewport form input[name=startUrl\\[\\]]").val(this.currentUrl);
+
 		return true;
 	},
-
-	initImportStiemapValidation: function(){
-		//给名字的输入框添加onblur事件，跟着修改ID
-		$("#viewport form input[name=_name]").blur(function(){
+	initImportStiemapValidation: function() {
+		// 给名字的输入框添加 onblur 事件，跟着修改 ID
+		$("#viewport form input[name=_name]").blur(function() {
 		  var name = $("#viewport form input[name=_name]").val();
-		  if(name!=null && name!=""){
+		  if(name!=null && name!="") {
 		  	var id = $("#viewport form input[name=_id]").val();
-		  	if(id==null || id == ""){
-		  		//默认先将name的md5值赋值
+		  	if(id == null || id == "") {
+		  		// 默认先将 name 的 md5 值赋值
 		  		id = md5(name);
 				$("#viewport form input[name=_id]").val(id);
 		  	}
 		  }
 		});
+
 		$('#viewport form').bootstrapValidator({
 			fields: {
 				"_name": {
 					validators: {
 						stringLength: {
 							min: 2,
-							message: '网站名称的长度必须在2个字符以上'
+							message: '网站名称的长度必须在 2 个字符以上'
 						},
 						regexp: {
 							regexp: /^[a-zA-Z0-9_\u4e00-\u9fa5]+$/,
@@ -455,14 +467,14 @@ SitemapController.prototype = {
 		          validators: {
 		            stringLength: {
 		              min: 3,
-		              message: '网站ID的长度必须在3个字符以上'
+		              message: '网站 ID 的长度必须在 3 个字符以上'
 		            },
 		            regexp: {
 		              regexp: /^[a-z][a-z0-9_$()+\-/]+$/,
-		              message: '网站ID只支持字母 (a-z), 数字 (0-9), 或者 _, $, (, ), +, -, / 。 并且必须以字母开头。'
+		              message: '网站 ID 只支持字母 (a-z), 数字 (0-9), 或者 _, $, (, ), +, -, /。并且必须以字母开头。'
 		            },
 		            callback: {
-		              message: '网站ID已经存在',
+		              message: '网站 ID 已经存在',
 		              callback: function (value, validator) {
 		                return true
 		              }
@@ -490,7 +502,6 @@ SitemapController.prototype = {
 			}
 		});
 	},
-
 	showImportSitemapPanel: function () {
 		this.setActiveNavigationButton('create-sitemap-import');
 		var sitemapForm = ich.SitemapImport();
@@ -498,7 +509,6 @@ SitemapController.prototype = {
 		this.initImportStiemapValidation();
 		return true;
 	},
-
 	showSitemapExportPanel: function () {
 		this.setActiveNavigationButton('sitemap-export');
 		var sitemap = this.state.currentSitemap;
@@ -509,9 +519,7 @@ SitemapController.prototype = {
 		$("#viewport").html(sitemapExportForm);
 		return true;
 	},
-
 	showSitemaps: function () {
-
 		this.clearState();
 		this.setActiveNavigationButton("sitemaps");
 
@@ -525,9 +533,7 @@ SitemapController.prototype = {
 			$("#viewport").html($sitemapListPanel);
 		});
 	},
-
-	getSitemapFromMetadataForm: function(){
-
+	getSitemapFromMetadataForm: function() {
 		var id = $("#viewport form input[name=_id]").val();
 		var name = $("#viewport form input[name=_name]").val();
 		console.log(id+","+name)
@@ -540,8 +546,7 @@ SitemapController.prototype = {
 		var startUrl;
 		if($startUrlInputs.length === 1) {
 			startUrl = $startUrlInputs.val();
-		}
-		else {
+		} else {
 			startUrl = [];
 			$startUrlInputs.each(function(i, element) {
 				startUrl.push($(element).val());
@@ -554,9 +559,7 @@ SitemapController.prototype = {
 			startUrl:startUrl
 		};
 	},
-
 	createSitemap: function (form) {
-
 		// cancel submit if invalid form
 		if(!this.isValidForm()) {
 			return false;
@@ -569,8 +572,7 @@ SitemapController.prototype = {
 			if(sitemapExists) {
 				var validator = this.getFormValidator();
 				validator.updateStatus('_id', 'INVALID', 'callback');
-			}
-			else {
+			} else {
 				var sitemap = new Sitemap({
 					_id: sitemapData.id,
 					name:sitemapData.name,
@@ -584,9 +586,7 @@ SitemapController.prototype = {
 
 		}.bind(this));
 	},
-
 	importSitemap: function () {
-
 		// cancel submit if invalid form
 		if(!this.isValidForm()) {
 			return false;
@@ -597,7 +597,7 @@ SitemapController.prototype = {
 		var name = $("input[name=_name]").val();
 		var id = $("input[name=_id]").val();
 		if(id==null || id == ""){
-			if(name!=undefined && name!=null && name!=""){
+			if(name!=undefined && name!=null && name!="") {
 				id = md5(name);
 				$("input[name=_id]").val(id);
 			}
@@ -609,7 +609,8 @@ SitemapController.prototype = {
 		if(id.length) {
 			sitemap._id = id;
 		}
-		if(name.length){
+
+		if(name.length) {
 			sitemap.name = name;
 		}
 		// check whether sitemap with this id already exist
@@ -625,9 +626,7 @@ SitemapController.prototype = {
 			}
 		}.bind(this));
 	},
-
 	editSitemapMetadata: function (button) {
-
 		this.setActiveNavigationButton('sitemap-edit-metadata');
 
 		var sitemap = this.state.currentSitemap;
@@ -638,7 +637,6 @@ SitemapController.prototype = {
 
 		return true;
 	},
-
 	editSitemapMetadataSave: function (button) {
 		var sitemap = this.state.currentSitemap;
 		var sitemapData = this.getSitemapFromMetadataForm();
@@ -683,12 +681,10 @@ SitemapController.prototype = {
 
 		}.bind(this));
 	},
-
 	/**
 	 * Callback when sitemap edit button is clicked in sitemap grid
 	 */
 	editSitemap: function (tr) {
-
 		var sitemap = $(tr).data("sitemap");
 		this._editSitemap(sitemap);
 	},
@@ -699,7 +695,6 @@ SitemapController.prototype = {
 		this.showSitemapSelectorList();
 	},
 	showSitemapSelectorList: function () {
-
 		this.setActiveNavigationButton('sitemap-selector-list');
 
 		var sitemap = this.state.currentSitemap;
@@ -712,13 +707,13 @@ SitemapController.prototype = {
 		
 		var selectTypes = this.loadSelectorsTypes();
 		var selectors = sitemap.getDirectChildSelectors(parentSelectorId);
-		//将type进行转换
+		// 将 type 进行转换
 		
 		selectors.forEach(function (selector) {
 			var type = selector.type;
 			var typeName = "";
 			selectTypes.forEach(function (stypes) {
-				if(stypes.type == type){
+				if(stypes.type == type) {
 					typeName = stypes.title;
 				}
 			});
@@ -770,9 +765,7 @@ SitemapController.prototype = {
 		});
 		this.showSitemapSelectorList();
 	},
-
 	initSelectorValidation: function() {
-
 		$('#viewport form').bootstrapValidator({
 			fields: {
 				"id": {
@@ -825,8 +818,7 @@ SitemapController.prototype = {
 								var matches = "".match(new RegExp(value));
 								if(matches !== null && matches[0] === "") {
 									return false;
-								}
-								else {
+								} else {
 									return true;
 								}
 							}
@@ -885,12 +877,10 @@ SitemapController.prototype = {
 		this._editSelector(selector);
 	},
 	updateSelectorParentListOnIdChange: function() {
-
 		var selector = this.getCurrentlyEditedSelector();
 		$(".currently-edited").val(selector.id).text(selector.id);
 	},
 	_editSelector: function (selector) {
-
 		var sitemap = this.state.currentSitemap;
 		var selectorIds = sitemap.getPossibleParentSelectorIds();
 
@@ -899,13 +889,20 @@ SitemapController.prototype = {
 			selectorIds: selectorIds,
 			selectorTypes: this.loadSelectorsTypes()
 		});
+
 		$("#viewport").html($editSelectorForm);
+
 		// mark initially opened selector as currently edited
 		$("#edit-selector #parentSelectors option").each(function(i, element) {
 			if($(element).val() === selector.id) {
 				$(element).addClass("currently-edited");
 			}
 		});
+
+        var _domainName = this.domainName(this.currentUrl);
+        var _taskName = 't_' + _domainName + '_' + (Math.round(Math.random() * 900) + 100);
+        $("#selectorId").val(_taskName);
+        $("#selectorName").val(_taskName);
 
 		// set clickType
 		if(selector.clickType) {
@@ -949,7 +946,6 @@ SitemapController.prototype = {
 		}
 	},
 	saveSelector: function (button) {
-
 		var sitemap = this.state.currentSitemap;
 		var selector = this.state.currentSelector;
 		var newSelector = this.getCurrentlyEditedSelector();
@@ -995,7 +991,7 @@ SitemapController.prototype = {
 		var $columnNames = $("#edit-selector .column-name");
 		var $columnExtracts = $("#edit-selector .column-extract");
 
-		$columnHeaders.each(function(i){
+		$columnHeaders.each(function(i) {
 			var header = $($columnHeaders[i]).val();
 			var name = $($columnNames[i]).val();
 			var extract = $($columnExtracts[i]).is(":checked");
@@ -1039,27 +1035,24 @@ SitemapController.prototype = {
 		return sitemap;
 	},
 	cancelSelectorEditing: function (button) {
-
 		// cancel possible element selection
 		this.contentScript.removeCurrentContentSelector().done(function() {
 			this.showSitemapSelectorList();
 		}.bind(this));
 	},
 	addSelector: function () {
-
 		var parentSelectorId = this.state.currentParentSelectorId;
 		var sitemap = this.state.currentSitemap;
 
 		var selector = new Selector({
 			parentSelectors: [parentSelectorId],
 			type: 'SelectorText',
-			multiple: false
+			multiple: true
 		});
 
 		this._editSelector(selector, sitemap);
 	},
 	deleteSelector: function (button) {
-
 		var sitemap = this.state.currentSitemap;
 		var selector = $(button).closest("tr").data('selector');
 		sitemap.deleteSelector(selector);
@@ -1075,8 +1068,7 @@ SitemapController.prototype = {
 			controller.showSitemaps();
 		});
 	},
-	initScrapeSitemapConfigValidation: function(){
-
+	initScrapeSitemapConfigValidation: function() {
 		$('#viewport form').bootstrapValidator({
 			fields: {
 				"requestInterval": {
@@ -1115,7 +1107,6 @@ SitemapController.prototype = {
 		});
 	},
 	showScrapeSitemapConfigPanel: function() {
-
 		this.setActiveNavigationButton('sitemap-scrape');
 		var scrapeConfigPanel = ich.SitemapScrapeConfig();
 		$("#viewport").html(scrapeConfigPanel);
@@ -1123,7 +1114,6 @@ SitemapController.prototype = {
 		return true;
 	},
 	scrapeSitemap: function () {
-
 		if(!this.isValidForm()) {
 			return false;
 		}
@@ -1188,7 +1178,6 @@ SitemapController.prototype = {
 
 		return true;
 	},
-
 	showSitemapExportDataCsvPanel: function () {
 		this.setActiveNavigationButton('sitemap-export-data-csv');
 
@@ -1207,9 +1196,7 @@ SitemapController.prototype = {
 
 		return true;
 	},
-
 	selectSelector: function (button) {
-
 		var input = $(button).closest(".form-group").find("input.selector-value");
 		var sitemap = this.getCurrentlyEditedSelectorSitemap();
 		var selector = this.getCurrentlyEditedSelector();
@@ -1222,7 +1209,6 @@ SitemapController.prototype = {
 		});
 
 		deferredSelector.done(function(result) {
-
 			$(input).val(result.CSSSelector);
 
 			// update validation for selector field
@@ -1233,9 +1219,7 @@ SitemapController.prototype = {
 			// update header row, data row selectors after selecting the table. selectors are updated based on tables
 			// inner html
 			if(selector.type === 'SelectorTable') {
-
 				this.getSelectorHTML().done(function(html) {
-
 					var tableHeaderRowSelector = SelectorTable.getTableHeaderRowSelectorFromTableHTML(html);
 					var tableDataRowSelector = SelectorTable.getTableDataRowSelectorFromTableHTML(html);
 					$("input[name=tableHeaderRowSelector]").val(tableHeaderRowSelector);
@@ -1245,21 +1229,15 @@ SitemapController.prototype = {
 					this.renderTableHeaderColumns(headerColumns);
 				}.bind(this));
 			}
-
 		}.bind(this));
 	},
-
 	getCurrentStateParentSelectorIds: function() {
-
 		var parentSelectorIds = this.state.editSitemapBreadcumbsSelectors.map(function(selector) {
 			return selector.id;
 		});
-
 		return parentSelectorIds;
 	},
-
 	selectTableHeaderRowSelector: function(button) {
-
 		var input = $(button).closest(".form-group").find("input.selector-value");
 		var sitemap = this.getCurrentlyEditedSelectorSitemap();
 		var selector = this.getCurrentlyEditedSelector();
@@ -1272,12 +1250,10 @@ SitemapController.prototype = {
 		});
 
 		deferredSelector.done(function(result) {
-
 			var tableHeaderRowSelector = result.CSSSelector
 			$(input).val(tableHeaderRowSelector);
 
 			this.getSelectorHTML().done(function(html) {
-
 				var headerColumns = SelectorTable.getTableHeaderColumnsFromHTML(tableHeaderRowSelector, html);
 				this.renderTableHeaderColumns(headerColumns);
 
@@ -1289,9 +1265,7 @@ SitemapController.prototype = {
 
 		}.bind(this));
 	},
-
 	selectTableDataRowSelector: function(button) {
-
 		var input = $(button).closest(".form-group").find("input.selector-value");
 		var sitemap = this.getCurrentlyEditedSelectorSitemap();
 		var selector = this.getCurrentlyEditedSelector();
@@ -1304,21 +1278,17 @@ SitemapController.prototype = {
 		});
 
 		deferredSelector.done(function(result) {
-
 			$(input).val(result.CSSSelector);
-
 			// update validation for selector field
 			var validator = this.getFormValidator();
 			validator.revalidateField(input);
 
 		}.bind(this));
 	},
-
 	/**
 	 * update table selector column editing fields
 	 */
 	renderTableHeaderColumns: function(headerColumns) {
-
 		// reset previous columns
 		var $tbody = $(".feature-columns table tbody");
 		$tbody.html("");
@@ -1327,12 +1297,10 @@ SitemapController.prototype = {
 			$tbody.append($row);
 		});
 	},
-
 	/**
 	 * Returns HTML that the current selector would select
 	 */
 	getSelectorHTML: function() {
-
 		var sitemap = this.getCurrentlyEditedSelectorSitemap();
 		var selector = this.getCurrentlyEditedSelector();
 		var currentStateParentSelectorIds = this.getCurrentStateParentSelectorIds();
@@ -1342,9 +1310,7 @@ SitemapController.prototype = {
 		return deferredHTML;
 	},
 	previewSelector: function (button) {
-
 		if (!$(button).hasClass('preview')) {
-
 			var sitemap = this.getCurrentlyEditedSelectorSitemap();
 			var selector = this.getCurrentlyEditedSelector();
 			var currentStateParentSelectorIds = this.getCurrentStateParentSelectorIds();
@@ -1357,17 +1323,14 @@ SitemapController.prototype = {
 			deferredSelectorPreview.done(function() {
 				$(button).addClass("preview");
 			});
-		}
-		else {
+		} else {
 
 			this.contentScript.removeCurrentContentSelector();
 			$(button).removeClass("preview");
 		}
 	},
 	previewClickElementSelector: function(button) {
-
 		if (!$(button).hasClass('preview')) {
-
 			var sitemap = this.state.currentSitemap;
 			var selector = this.getCurrentlyEditedSelector();
 			var currentStateParentSelectorIds = this.getCurrentStateParentSelectorIds();
@@ -1381,16 +1344,13 @@ SitemapController.prototype = {
 			deferredSelectorPreview.done(function() {
 				$(button).addClass("preview");
 			});
-		}
-		else {
+		} else {
 			this.contentScript.removeCurrentContentSelector();
 			$(button).removeClass("preview");
 		}
 	},
 	previewTableRowSelector: function(button) {
-
 		if (!$(button).hasClass('preview')) {
-
 			var sitemap = this.getCurrentlyEditedSelectorSitemap();
 			var selector = this.getCurrentlyEditedSelector();
 			var currentStateParentSelectorIds = this.getCurrentStateParentSelectorIds();
@@ -1405,16 +1365,13 @@ SitemapController.prototype = {
 			deferredSelectorPreview.done(function() {
 				$(button).addClass("preview");
 			});
-		}
-		else {
+		} else {
 			this.contentScript.removeCurrentContentSelector();
 			$(button).removeClass("preview");
 		}
 	},
 	previewSelectorFromSelectorTree: function (button) {
-
 		if (!$(button).hasClass('preview')) {
-
 			var sitemap = this.state.currentSitemap;
 			var selector = $(button).closest("tr").data('selector');
 			var currentStateParentSelectorIds = this.getCurrentStateParentSelectorIds();
@@ -1427,9 +1384,7 @@ SitemapController.prototype = {
 			deferredSelectorPreview.done(function() {
 				$(button).addClass("preview");
 			});
-		}
-		else {
-
+		} else {
 			this.contentScript.removeCurrentContentSelector();
 			$(button).removeClass("preview");
 		}
@@ -1450,7 +1405,7 @@ SitemapController.prototype = {
 	 * Returns a list of selector ids that the user has opened
 	 * @returns {Array}
 	 */
-	getStateParentSelectorIds: function(){
+	getStateParentSelectorIds: function() {
 		var parentSelectorIds = [];
 		this.state.editSitemapBreadcumbsSelectors.forEach(function(selector){
 			parentSelectorIds.push(selector.id);
@@ -1458,7 +1413,6 @@ SitemapController.prototype = {
 		return parentSelectorIds;
 	},
 	previewSelectorData: function (sitemap, selectorId) {
-
 		// data preview will be base on how the selector tree is opened
 		var parentSelectorIds = this.getStateParentSelectorIds();
 
@@ -1468,8 +1422,8 @@ SitemapController.prototype = {
 			parentSelectorIds: parentSelectorIds,
 			selectorId: selectorId
 		};
-		chrome.runtime.sendMessage(request, function (response) {
 
+		chrome.runtime.sendMessage(request, function (response) {
 			if (response.length === 0) {
 				return
 			}
@@ -1480,6 +1434,7 @@ SitemapController.prototype = {
 			var $dataPreviewPanel = ich.DataPreview({
 				columns: dataColumns
 			});
+
 			$("#viewport").append($dataPreviewPanel);
 			$dataPreviewPanel.modal('show');
 			// display data
@@ -1515,7 +1470,6 @@ SitemapController.prototype = {
 	 * @param button
 	 */
 	addStartUrl: function(button) {
-
 		var $startUrlInputField = ich.SitemapStartUrlField();
 		$("#viewport .start-url-block:last").after($startUrlInputField);
 		var validator = this.getFormValidator();
@@ -1526,7 +1480,6 @@ SitemapController.prototype = {
 	 * @param button
 	 */
 	removeStartUrl: function(button) {
-
 		var $block = $(button).closest(".start-url-block");
 		if($("#viewport .start-url-block").length > 1) {
 
@@ -1540,9 +1493,8 @@ SitemapController.prototype = {
 	/**
 	 * 滚动截屏
 	 */
-	screenShot:function(button){
+	screenShot:function(button) {
 		this.store.startScreenShot(function () {
-			
 		});
 	}
 };

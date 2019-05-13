@@ -1,9 +1,7 @@
 var Config = function () {
-
 };
 
 Config.prototype = {
-
 	sitemapDb: '',
 	dataDb: '',
 	crawlerDb:'',
@@ -22,15 +20,12 @@ Config.prototype = {
 	 * Loads configuration from chrome extension sync storage
 	 */
 	loadConfiguration: function (callback) {
-
 		chrome.storage.sync.get(['sitemapDb', 'dataDb', 'storageType','crawlerDb'], function (items) {
-
 			this.storageType = items.storageType || this.defaults.storageType;
 			if (this.storageType === 'local') {
 				this.sitemapDb = this.defaults.sitemapDb;
 				this.dataDb = this.defaults.dataDb;
-			}
-			else {
+			} else {
 				this.sitemapDb = items.sitemapDb || this.defaults.sitemapDb;
 				this.dataDb = items.dataDb || this.defaults.dataDb;
 			}

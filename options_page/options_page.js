@@ -1,5 +1,4 @@
 $(function () {
-
 	// popups for Storage setting input fields
 	$("#crawlerDb")
 	.popover({
@@ -74,8 +73,7 @@ $(function () {
 				dataDb: ' ',
 				crawlerDb : crawlerDb
 			}
-		}
-		else {
+		} else {
 			newConfig = {
 				storageType: storageType,
 				sitemapDb: sitemapDb,
@@ -83,7 +81,6 @@ $(function () {
 				crawlerDb : crawlerDb
 			}
 		}
-
 		config.updateConfiguration(newConfig);
 		return false;
 	});

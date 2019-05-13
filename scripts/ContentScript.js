@@ -2,51 +2,42 @@
  * ContentScript that can be called from anywhere within the extension
  */
 var ContentScript = {
-
 	/**
 	 * Fetch
 	 * @param request.CSSSelector	css selector as string
 	 * @returns $.Deferred()
 	 */
 	getHTML: function(request) {
-
 		var deferredHTML = $.Deferred();
 		var html = $(request.CSSSelector).clone().wrap('<p>').parent().html();
 		deferredHTML.resolve(html);
 		return deferredHTML.promise();
 	},
-
 	/**
 	 * Removes current content selector if is in use within the page
 	 * @returns $.Deferred()
 	 */
 	removeCurrentContentSelector: function() {
-
 		var deferredResponse = $.Deferred();
 		var contentSelector = window.cs;
 		if(contentSelector === undefined) {
 			deferredResponse.resolve();
-		}
-		else {
+		} else {
 			contentSelector.removeGUI();
 			window.cs = undefined;
 			deferredResponse.resolve();
 		}
-
 		return deferredResponse.promise();
 	},
-
 	/**
 	 * Select elements within the page
 	 * @param request.parentCSSSelector
 	 * @param request.allowedElements
 	 */
 	selectSelector: function(request) {
-
 		var deferredResponse = $.Deferred();
 
 		this.removeCurrentContentSelector().done(function() {
-
 			var contentSelector = new ContentSelector({
 				parentCSSSelector: request.parentCSSSelector,
 				allowedElements: request.allowedElements
@@ -68,17 +59,14 @@ var ContentScript = {
 
 		return deferredResponse.promise();
 	},
-
 	/**
 	 * Preview elements
 	 * @param request.parentCSSSelector
 	 * @param request.elementCSSSelector
 	 */
 	previewSelector: function(request) {
-
 		var deferredResponse = $.Deferred();
 		this.removeCurrentContentSelector().done(function () {
-
 			var contentSelector = new ContentSelector({
 				parentCSSSelector: request.parentCSSSelector
 			});
@@ -103,7 +91,6 @@ var ContentScript = {
  * @returns ContentScript
  */
 var getContentScript = function(location) {
-
 	var contentScript;
 
 	// Handle calls from different places
@@ -111,17 +98,14 @@ var getContentScript = function(location) {
 		contentScript = ContentScript;
 		contentScript.backgroundScript = getBackgroundScript("ContentScript");
 		return contentScript;
-	}
-	else if(location === "BackgroundScript" || location === "DevTools") {
-
+	} else if(location === "BackgroundScript" || location === "DevTools") {
 		var backgroundScript = getBackgroundScript(location);
 
 		// if called within background script proxy calls to content script
 		contentScript = {};
-			Object.keys(ContentScript).forEach(function(attr) {
+		Object.keys(ContentScript).forEach(function(attr) {
 			if(typeof ContentScript[attr] === 'function') {
 				contentScript[attr] = function(request) {
-
 					var reqToContentScript = {
 						contentScriptCall: true,
 						fn: attr,
@@ -130,15 +114,13 @@ var getContentScript = function(location) {
 
 					return backgroundScript.executeContentScript(reqToContentScript);
 				};
-			}
-			else {
+			} else {
 				contentScript[attr] = ContentScript[attr];
 			}
 		});
 		contentScript.backgroundScript = backgroundScript;
 		return contentScript;
-	}
-	else {
+	} else {
 		throw "Invalid ContentScript initialization - " + location;
 	}
 };

@@ -3,7 +3,6 @@ var Sitemap = function (sitemapObj) {
 };
 
 Sitemap.prototype = {
-
 	initData: function (sitemapObj) {
 		for (var key in sitemapObj) {
 			this[key] = sitemapObj[key];
@@ -12,17 +11,14 @@ Sitemap.prototype = {
 		var selectors = this.selectors;
 		this.selectors = new SelectorList(this.selectors);
 	},
-
 	/**
 	 * Returns all selectors or recursively find and return all child selectors of a parent selector.
 	 * @param parentSelectorId
 	 * @returns {Array}
 	 */
 	getAllSelectors: function (parentSelectorId) {
-
 		return this.selectors.getAllSelectors(parentSelectorId);
 	},
-
 	/**
 	 * Returns only selectors that are directly under a parent
 	 * @param parentSelectorId
@@ -31,7 +27,6 @@ Sitemap.prototype = {
 	getDirectChildSelectors: function (parentSelectorId) {
 		return this.selectors.getDirectChildSelectors(parentSelectorId);
 	},
-
 	/**
 	 * Returns all selector id parameters
 	 * @returns {Array}
@@ -43,7 +38,6 @@ Sitemap.prototype = {
 		});
 		return ids;
 	},
-
 	/**
 	 * Returns only selector ids which can have child selectors
 	 * @returns {Array}
@@ -57,9 +51,7 @@ Sitemap.prototype = {
 		}.bind(this));
 		return ids;
 	},
-
 	getStartUrls: function() {
-
 		var startUrls = this.startUrl;
 		// single start url
 		if(this.startUrl.push === undefined) {
@@ -68,7 +60,6 @@ Sitemap.prototype = {
 
 		var urls = [];
 		startUrls.forEach(function(startUrl) {
-
 			// zero padding helper
 			var lpad = function(str, length) {
 				while (str.length < length)
@@ -89,7 +80,6 @@ Sitemap.prototype = {
 					incremental = parseInt(matches[5]);
 				}
 				for (var i = start; i <= end; i+=incremental) {
-
 					// with zero padding
 					if(startStr.length === endStr.length) {
 						urls.push(matches[1]+lpad(i.toString(), startStr.length)+matches[6]);
@@ -107,9 +97,7 @@ Sitemap.prototype = {
 
 		return urls;
 	},
-
 	updateSelector: function (selector, selectorData) {
-
 		// selector is undefined when creating a new one
 		if(selector === undefined) {
 			selector = new Selector(selectorData);
@@ -135,7 +123,6 @@ Sitemap.prototype = {
 		}
 	},
 	deleteSelector: function (selectorToDelete) {
-
 		this.selectors.forEach(function(selector) {
 			if(selector.hasParentSelector(selectorToDelete.id)) {
 				selector.removeParentSelector(selectorToDelete.id);
