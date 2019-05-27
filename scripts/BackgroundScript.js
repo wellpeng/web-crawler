@@ -30,7 +30,7 @@ var BackgroundScript = {
 	 * @param request.fn	function to call
 	 * @param request.request	request that will be passed to the function
 	 */
-	executeContentScript : function(request) {
+	executeContentScript: function(request) {
 		var reqToContentScript = {
 			contentScriptCall: true,
 			fn: request.fn,

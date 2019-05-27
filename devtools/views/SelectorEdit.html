@@ -1,12 +1,13 @@
+<!-- 添加任务 -->
 <form class="form-horizontal" role="form" id="edit-selector">
 	<div class="form-group">
-		<label for="selectorId" class="col-lg-1 control-label">任务字段名 <font color="red">*</font></label>
+		<label for="selectorId" class="col-lg-1 control-label">任务字段名 <span style="color:red">*</span></label>
 		<div class="col-lg-10">
 			<input type="text" class="form-control" name="id" id="selectorId" placeholder="任务字段名" value="{{selector.id}}">
 		</div>
 	</div>
 	<div class="form-group">
-		<label for="selectorId" class="col-lg-1 control-label">任务名称 <font color="red">*</font></label>
+		<label for="selectorId" class="col-lg-1 control-label">任务名称 <span style="color:red">*</span></label>
 		<div class="col-lg-10">
 			<input type="text" class="form-control" name="name" id="selectorName" placeholder="任务名称" value="{{selector.name}}">
 		</div>
@@ -27,6 +28,7 @@
 		<div class="col-lg-10">
 			<div class="input-group">
 				  <span class="input-group-btn">
+					<button class="btn btn-default" action="auto-selector" type="button">自动识别</button>
 					<button class="btn btn-default" action="select-selector" type="button">选取</button>
 					<button class="btn btn-default" action="preview-selector" type="button" data-toggle="button">选取预览</button>
 					<button class="btn btn-default" action="preview-selector-data" type="button">数据预览</button>
@@ -93,10 +95,10 @@
 		<label for="clickElementUniquenessType" class="col-lg-1 control-label">点击元素去重判定</label>
 		<div class="input-group col-lg-10">
 			<select class="form-control" id="clickElementUniquenessType" name="clickElementUniquenessType">
-				<option value="uniqueText">Text去重</option>
-				<option value="uniqueHTMLText">HTML+Text去重</option>
-				<option value="uniqueHTML">HTML去重</option>
-				<option value="uniqueCSSSelector">CSS去重</option>
+				<option value="uniqueText">Text 去重</option>
+				<option value="uniqueHTMLText">HTML + Text 去重</option>
+				<option value="uniqueHTML">HTML 去重</option>
+				<option value="uniqueCSSSelector">CSS 去重</option>
 			</select>
 		</div>
 	</div>
@@ -192,7 +194,7 @@
 
 	<div class="form-group">
 		<div class="col-lg-offset-1 col-lg-10">
-			<button class="btn btn-primary" action="save-selector">保存</button> <button action="cancel-selector-editing" class="btn btn-default">取消</button>
+			<button class="btn btn-primary" action="save-selector">保 存</button> <button action="cancel-selector-editing" class="btn btn-default">取 消</button>
 		</div>
 	</div>
 

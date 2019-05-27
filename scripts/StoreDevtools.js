@@ -3,8 +3,7 @@
  * handled through Background page. StoreDevtools is a simply a proxy store
  * @constructor
  */
-var StoreDevtools = function () {
-};
+var StoreDevtools = function () {};
 
 StoreDevtools.prototype = {
 	createSitemap: function (sitemap, callback) {

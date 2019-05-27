@@ -210,8 +210,7 @@ SelectorList.prototype.getSelectorById = function (selectorId) {
 SelectorList.prototype.getCSSSelectorWithinOnePage = function (selectorId, parentSelectorIds) {
 	var CSSSelector = this.getSelector(selectorId).selector;
 	var parentCSSSelector = this.getParentCSSSelectorWithinOnePage(parentSelectorIds);
-	CSSSelector = parentCSSSelector+CSSSelector;
-
+	CSSSelector = parentCSSSelector + CSSSelector;
 	return CSSSelector;
 };
 

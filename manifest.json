@@ -30,7 +30,7 @@
 	"background" : {
 		"comment" : "会一直常驻的后台 JS 或后台页面",
 		"scripts" : [
-			"assets/jquery-2.0.3.js",
+			"assets/jquery-3.4.1.min.js",
 			"assets/jquery.whencallsequentially.js",
 			"assets/pouchdb-nightly.min.js",
 			"assets/base64.js",
@@ -94,7 +94,7 @@
 			"comment" : "需要直接注入页面的 JS, 多个 JS 按顺序注入",
 			"matches" : ["*://*/*"],
 			"js" : [
-				"assets/jquery-2.0.3.js",
+				"assets/jquery-3.4.1.min.js",
 				"assets/jquery.whencallsequentially.js",
 				"assets/base64.js",
 				"assets/md5.min.js",

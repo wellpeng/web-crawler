@@ -17,19 +17,18 @@ var sendToActiveTab = function(request, callback) {
 };
 
 config.loadConfiguration(function () {
-	console.log("background:initial configuration", config);
+	console.log("background:initial store configuration", config);
 	store = new Store(config);
 });
 
 chrome.storage.onChanged.addListener(function () {
 	config.loadConfiguration(function () {
-		console.log("background:configuration changed", config);
+		console.log("background:store configuration changed", config);
 		store = new Store(config);
 	});
 });
 
-chrome.runtime.onMessage.addListener(
-	function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 		console.log("background:chrome.runtime.onMessage", request);
 
 		if (request.createSitemap) {
@@ -52,7 +51,7 @@ chrome.runtime.onMessage.addListener(
 		} else if (request.getSitemapData) {
 			store.getSitemapData(new Sitemap(request.sitemap), sendResponse);
 			return true;
-		} else if(request.saveSitemapExport){
+		} else if(request.saveSitemapExport) {
 			console.log("background:received createSitemapUpload extraction request");
 			store.createSitemapUpload(request.sitemap, sendResponse);
 			return true;
@@ -78,7 +77,7 @@ chrome.runtime.onMessage.addListener(
 						type: 'basic',
 						iconUrl: 'assets/images/crawler128.png',
 						title: '采集结束',
-						message: '网站： ' + sitemap.name+'结束采集'
+						message: '网站： ' + sitemap.name + '结束采集'
 					}, function(id) {
 						// notification showed
 					});
@@ -87,7 +86,6 @@ chrome.runtime.onMessage.addListener(
 			} catch (e) {
 				console.log("Scraper execution cancelled".e);
 			}
-
 			return true;
 		} else if(request.previewSelectorData) {
 			chrome.tabs.query({
@@ -125,8 +123,8 @@ chrome.runtime.onMessage.addListener(
 			shot.capturePage(request.position, request.lastCapture);
 		} else if(request.backgroundScriptCall) {
 			var backgroundScript = getBackgroundScript("BackgroundScript");
-			var deferredResponse = backgroundScript[request.fn](request.request)
-			deferredResponse.done(function(response) {
+			var $Deferred = backgroundScript[request.fn](request.request);
+            $Deferred.done(function(response) {
 				sendResponse(response);
 			});
 			return true;

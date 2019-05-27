@@ -18,16 +18,16 @@ var ContentScript = {
 	 * @returns $.Deferred()
 	 */
 	removeCurrentContentSelector: function() {
-		var deferredResponse = $.Deferred();
+		var dfd = $.Deferred();
 		var contentSelector = window.cs;
 		if(contentSelector === undefined) {
-			deferredResponse.resolve();
+            dfd.resolve();
 		} else {
 			contentSelector.removeGUI();
 			window.cs = undefined;
-			deferredResponse.resolve();
+            dfd.resolve();
 		}
-		return deferredResponse.promise();
+		return dfd.promise();
 	},
 	/**
 	 * Select elements within the page
@@ -35,8 +35,7 @@ var ContentScript = {
 	 * @param request.allowedElements
 	 */
 	selectSelector: function(request) {
-		var deferredResponse = $.Deferred();
-
+		var dfd = $.Deferred();
 		this.removeCurrentContentSelector().done(function() {
 			var contentSelector = new ContentSelector({
 				parentCSSSelector: request.parentCSSSelector,
@@ -46,18 +45,16 @@ var ContentScript = {
 
 			var deferredCSSSelector = contentSelector.getCSSSelector();
 			deferredCSSSelector.done(function(response) {
-				this.removeCurrentContentSelector().done(function(){
-					deferredResponse.resolve(response);
+				this.removeCurrentContentSelector().done(function() {
+                    dfd.resolve(response);
 					window.cs = undefined;
 				}.bind(this));
 			}.bind(this)).fail(function(message) {
-				deferredResponse.reject(message);
+                dfd.reject(message);
 				window.cs = undefined;
 			}.bind(this));
-
 		}.bind(this));
-
-		return deferredResponse.promise();
+		return dfd.promise();
 	},
 	/**
 	 * Preview elements
@@ -65,7 +62,7 @@ var ContentScript = {
 	 * @param request.elementCSSSelector
 	 */
 	previewSelector: function(request) {
-		var deferredResponse = $.Deferred();
+		var dfd = $.Deferred();
 		this.removeCurrentContentSelector().done(function () {
 			var contentSelector = new ContentSelector({
 				parentCSSSelector: request.parentCSSSelector
@@ -74,14 +71,36 @@ var ContentScript = {
 
 			var deferredSelectorPreview = contentSelector.previewSelector(request.elementCSSSelector);
 			deferredSelectorPreview.done(function() {
-				deferredResponse.resolve();
+                dfd.resolve();
 			}).fail(function(message) {
-				deferredResponse.reject(message);
+                dfd.reject(message);
 				window.cs = undefined;
 			});
 		});
-		return deferredResponse;
-	}
+		return dfd;
+	},
+    autoSelector: function(request) {
+        var dfd = $.Deferred();
+        this.removeCurrentContentSelector().done(function() {
+            var contentSelector = new ContentSelector({
+                parentCSSSelector: request.parentCSSSelector,
+                allowedElements: request.allowedElements
+            });
+            window.cs = contentSelector;
+
+            var deferredCSSSelector = contentSelector.autoSelector();
+            deferredCSSSelector.done(function(response) {
+                this.removeCurrentContentSelector().done(function() {
+                    dfd.resolve(response);
+                    window.cs = undefined;
+                }.bind(this));
+            }.bind(this)).fail(function(message) {
+                dfd.reject(message);
+                window.cs = undefined;
+            }.bind(this));
+        }.bind(this));
+        return dfd.promise();
+    },
 };
 
 /**
@@ -111,7 +130,6 @@ var getContentScript = function(location) {
 						fn: attr,
 						request: request
 					};
-
 					return backgroundScript.executeContentScript(reqToContentScript);
 				};
 			} else {

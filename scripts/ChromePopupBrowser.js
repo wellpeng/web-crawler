@@ -1,14 +1,10 @@
 var ChromePopupBrowser = function (options) {
-
 	this.pageLoadDelay = options.pageLoadDelay;
-
 	// @TODO somehow handle the closed window
 };
 
 ChromePopupBrowser.prototype = {
-
 	_initPopupWindow: function (callback, scope) {
-
 		var browser = this;
 		if (this.window !== undefined) {
 			console.log(JSON.stringify(this.window));
@@ -19,7 +15,6 @@ ChromePopupBrowser.prototype = {
 				}
 			});
 
-
 			callback.call(scope);
 			return;
 		}
@@ -28,23 +23,16 @@ ChromePopupBrowser.prototype = {
 			browser.window = window;
 			browser.tab = window.tabs[0];
 
-
 			callback.call(scope);
 		});
 	},
-
 	loadUrl: function (url, callback) {
-
 		var tab = this.tab;
 
 		var tabLoadListener = function (tabId, changeInfo, tab) {
 			if(tabId === this.tab.id) {
 				if (changeInfo.status === 'complete') {
-
 					// @TODO check url ? maybe it would be bad because some sites might use redirects
-					
-					//
-
 					// remove event listener
 					chrome.tabs.onUpdated.removeListener(tabLoadListener);
 					
@@ -54,25 +42,18 @@ ChromePopupBrowser.prototype = {
 			}
 		}.bind(this);
 		chrome.tabs.onUpdated.addListener(tabLoadListener);
-
 		chrome.tabs.update(tab.id, {url: url});
 	},
-
 	close: function () {
 		chrome.windows.remove(this.window.id);
 	},
-
 	fetchData: function (url, sitemap, parentSelectorId, callback, scope) {
-
 		var browser = this;
 
 		this._initPopupWindow(function () {
 			var tab = browser.tab;
-
 			browser.loadUrl(url, function () {
-				//添加一个截图
-				
-				
+				// 添加一个截图
 				var message = {
 					extractData: true,
 					sitemap: JSON.parse(JSON.stringify(sitemap)),

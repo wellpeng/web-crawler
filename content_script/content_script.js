@@ -5,20 +5,19 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		console.log("content_script:received data extraction request", request);
 
 		var extractor = new DataExtractor(request);
-		var deferredData = extractor.getData();
-		deferredData.done(function(data) {
-			console.log("content_script:dataextractor data", data);
+		var $Deferred = extractor.getData();
+        $Deferred.done(function(data) {
+			console.log("content_script:data extraction response", data);
 			sendResponse(data);
 		});
 		return true;
 	} else if (request.previewSelectorData) {
-		console.log("content_script:received data-preview extraction request", request);
+		console.log("content_script:received data-preview request", request);
 
 		var extractor = new DataExtractor(request);
-		var deferredData = extractor.getSingleSelectorData(
-				request.parentSelectorIds, request.selectorId);
-		deferredData.done(function(data) {
-			console.log("content_script:dataextractor data", data);
+		var $Deferred = extractor.getSingleSelectorData(request.parentSelectorIds, request.selectorId);
+        $Deferred.done(function(data) {
+			console.log("content_script:data-preview response", data);
 			sendResponse(data);
 		});
 		return true;
@@ -26,11 +25,12 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	// Universal ContentScript communication handler
 	else if (request.contentScriptCall) {
 		var contentScript = getContentScript("ContentScript");
-		console.log("content_script:received ContentScript request", request);
+		console.log("content_script:received ContentScript call request", request);
 
-		var deferredResponse = contentScript[request.fn](request.request);
-		deferredResponse.done(function(response) {
-			sendResponse(response);
+		var $Deferred = contentScript[request.fn](request.request);
+        $Deferred.done(function(data) {
+            console.log("content_script:ContentScript call response", data);
+			sendResponse(data);
 		});
 		return true;
 	} else if (request.getPageDetails) {
@@ -42,7 +42,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		document = linksGrabber;
 	    linksGrabber = undefined;
 
-	    console.log("content_script:remove attributes", document);
+	    console.log("content_script:get page details", document);
 
 		var size = {
 				width: Math.max(
@@ -73,7 +73,6 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 			return true;
 	} else if (request.scrollPage) {
 		var lastCapture = false;
-		
 		window.scrollTo(0, request.scrollTo);
 
 		// first scrolling
@@ -100,7 +99,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	} else if (request.showError) {
 		var errorEl = document.createElement("div");
 
-		errorEl.innerHTML = "<div style='position: absolute; top: 10px; right: 10px; z-index: 9999; padding: 8px; background-color: #fff2f2; border: 1px solid #f03e3e; border-radius: 2px; font-size: 12px; line-height: 16px; transition: opacity .3s linear;'>An internal error occurred while taking pictures.</div>";
+		errorEl.innerHTML = "<div style='position: absolute; top: 10px; right: 10px; z-index: 9999; " +
+			"padding: 8px; background-color: #fff2f2; border: 1px solid #f03e3e; border-radius: 2px; " +
+			"font-size: 12px; line-height: 16px; transition: opacity .3s linear;'>" +
+			"An internal error occurred while taking pictures.</div>";
 		document.body.appendChild(errorEl);
 
 		setTimeout(function () {

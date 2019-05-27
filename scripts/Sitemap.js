@@ -75,22 +75,23 @@ Sitemap.prototype = {
 				var start = parseInt(startStr);
 				var end = parseInt(endStr);
 				var incremental = 1;
+
 				console.log(matches[5]);
+
 				if(matches[5] !== undefined) {
 					incremental = parseInt(matches[5]);
 				}
+
 				for (var i = start; i <= end; i+=incremental) {
 					// with zero padding
 					if(startStr.length === endStr.length) {
 						urls.push(matches[1]+lpad(i.toString(), startStr.length)+matches[6]);
-					}
-					else {
+					} else {
 						urls.push(matches[1]+i+matches[6]);
 					}
 				}
 				return urls;
-			}
-			else {
+			} else {
 				urls.push(startUrl);
 			}
 		});
@@ -156,14 +157,12 @@ Sitemap.prototype = {
 	getDataColumns: function () {
 		var columns = [];
 		this.selectors.forEach(function (selector) {
-
 			columns = columns.concat(selector.getDataColumns());
 		});
 
 		return columns;
 	},
 	getDataExportCsvBlob: function (data) {
-
 		var columns = this.getDataColumns(),
 			delimiter = ',',
 			newline = "\n",

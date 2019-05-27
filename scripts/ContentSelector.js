@@ -4,171 +4,192 @@
  * @constructor
  */
 ContentSelector = function(options) {
-
 	// deferred response
-	this.deferredCSSSelectorResponse = $.Deferred();
-
+	this.dfd = $.Deferred();
 	this.allowedElements = options.allowedElements;
 	this.parentCSSSelector = options.parentCSSSelector.trim();
-	this.alert = options.alert || function(txt) {alert(txt);};
+	this.alert = options.alert || function(txt) { alert(txt); };
 
 	if(this.parentCSSSelector) {
 		this.parent = $(this.parentCSSSelector)[0];
-
 		//  handle situation when parent selector not found
 		if(this.parent === undefined) {
-			this.deferredCSSSelectorResponse.reject("parent selector not found");
+			this.dfd.reject("parent selector not found");
 			this.alert("Parent element not found!");
 			return;
 		}
-	}
-	else {
+	} else {
 		this.parent = $("body")[0];
 	}
 };
 
 ContentSelector.prototype = {
+    /**
+     * initialize or reconfigure css selector class
+     * @param allowMultipleSelectors
+     */
+    initCssSelector: function(allowMultipleSelectors) {
+        this.cssSelector = new CssSelector({
+            enableSmartTableSelector: true,
+            parent: this.parent,
+            allowMultipleSelectors: allowMultipleSelectors,
+            ignoredClasses: [
+                "-sitemap-select-item-selected",
+                "-sitemap-select-item-hover",
+                "-sitemap-parent",
+                "-web-scraper-img-on-top",
+                "-web-scraper-selection-active"
+            ],
+            query: jQuery
+        });
+    },
+    initGUI: function () {
+        this.highlightParent();
+        // all elements except toolbar
+        this.$allElements = $(this.allowedElements + ":not(#-selector-toolbar):not(#-selector-toolbar *)", this.parent);
+        // allow selecting parent also
+        if(this.parent !== document.body) {
+            this.$allElements.push(this.parent);
+        }
+        this.bindElementHighlight();
+        this.bindElementSelection();
+        this.bindKeyboardSelectionManipulations();
+        this.attachToolbar();
+        this.bindMultipleGroupCheckbox();
+        this.bindMultipleGroupPopupHide();
+        this.bindMoveImagesToTop();
+    },
+    attachToolbar: function() {
+        var $toolbar = '<div id="-selector-toolbar">' +
+            '<div class="list-item"><div class="selector-container"><div class="selector"></div></div></div>' +
+            '<div class="input-group-addon list-item">' +
+            '<input type="checkbox" title="允许选择不同的类型元素" name="diferentElementSelection">' +
+            '<div class="popover top">' +
+            '<div class="close">×</div>' +
+            '<div class="arrow"></div>' +
+            '<div class="popover-content">' +
+            '<div class="txt">' +
+            '禁用不同类型的元素选择。如果你点击的元素也应该被包含，那么启用这个，然后再次点击元素。通常这是不需要的。' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '<div class="list-item key-events"><div title="点这里开启按钮点击事件响应">开启点击事件</div></div>' +
+            '<div class="list-item key-button key-button-select hide" title="按下 S 键来选择本 xpath 节点">S</div>' +
+            '<div class="list-item key-button key-button-parent hide" title="按下 P 键来选择本 xpath 的父节点">P</div>' +
+            '<div class="list-item key-button key-button-child hide" title="按下 C 键来选择本 xpath 的子节点">C</div>' +
+            '<div class="list-item done-selecting-button">结束选取</div>' +
+            '</div>';
+        $("body").append($toolbar);
 
+        $("body #-selector-toolbar .done-selecting-button").click(function () {
+            this.selectionFinished();
+        }.bind(this));
+    },
 	/**
 	 * get css selector selected by the user
 	 */
 	getCSSSelector: function(request) {
-
-		if(this.deferredCSSSelectorResponse.state() !== "rejected") {
-
+		if(this.dfd.state() !== "rejected") {
 			// elements that are selected by the user
 			this.selectedElements = [];
 			// element selected from top
 			this.top = 0;
-
 			// initialize css selector
 			this.initCssSelector(false);
-
 			this.initGUI();
 		}
-
-		return this.deferredCSSSelectorResponse.promise();
+		return this.dfd.promise();
 	},
+    previewSelector: function(elementCSSSelector) {
+        if(this.dfd.state() !== "rejected") {
+            this.highlightParent();
+            $(ElementQuery(elementCSSSelector, this.parent)).addClass('-sitemap-select-item-selected');
+            this.dfd.resolve();
+        }
+        return this.dfd.promise();
+    },
+    autoSelector: function() {
+        if(this.dfd.state() !== "rejected") {
+        	// this.alert($(".biaoti2").text());
+            // $('a').addClass('-sitemap-select-item-selected');
+            $('a:contains("下一页")').addClass('-sitemap-select-item-selected');
+            // var tabs = $('table');
+            // $('table').each(function(i, o) {var t=$(o);var h=t.attr('height');tabs_h[i]=h;if(h != undefined) t.css("border","2px solid red") });
 
+            var tabs_l=[],tabs_w=[],j=0,et_ok=[],targetobj;
+            var m_x=window.document.body.clientWidth/2;
+            var m_y=window.document.body.clientHeight/2;
+            $('table').each(function(i, o) {
+                var et=$(o);
+                var _l=et.offset().left,_w=et.outerWidth();
+                var _t=et.offset().top,_h=et.outerHeight();
+                tabs_l[i]=_l;
+                tabs_w[i]=_w;
+                if(_l > 0 && m_x > _l && m_x < (_l + _w) && _t >0 && m_y > _t && m_y < (_t + _h)) {
+                    et_ok[j++]=et;
+                }
+            });
+            et_ok.sort((a, b) => a.outerWidth() - b.outerWidth());
+            targetobj=et_ok[0];
+            targetobj.removeAttr('border');
+            // targetobj.find('td').css("border","1px dashed blue");
+            targetobj.find('td').addClass('-sitemap-select-item-selected');
+		}
+        return this.dfd.promise();
+	},
 	getCurrentCSSSelector: function() {
-
 		if(this.selectedElements && this.selectedElements.length > 0) {
-
 			var cssSelector;
-
 			// handle special case when parent is selected
 			if(this.isParentSelected()) {
 				if(this.selectedElements.length === 1) {
 					cssSelector = '_parent_';
-				}
-				else if($("#-selector-toolbar [name=diferentElementSelection]").prop("checked")) {
+				} else if($("#-selector-toolbar [name=diferentElementSelection]").prop("checked")) {
 					var selectedElements = this.selectedElements.clone();
-					selectedElements.splice(selectedElements.indexOf(this.parent),1);
-					cssSelector = '_parent_, '+this.cssSelector.getCssSelector(selectedElements, this.top);
-				}
-				else {
+					selectedElements.splice(selectedElements.indexOf(this.parent), 1);
+					cssSelector = '_parent_, ' + this.cssSelector.getCssSelector(selectedElements, this.top);
+				} else {
 					// will trigger error where multiple selections are not allowed
 					cssSelector = this.cssSelector.getCssSelector(this.selectedElements, this.top);
 				}
-			}
-			else {
+			} else {
 				cssSelector = this.cssSelector.getCssSelector(this.selectedElements, this.top);
 			}
-
 			return cssSelector;
 		}
 		return "";
 	},
-
 	isParentSelected: function() {
 		return this.selectedElements.indexOf(this.parent) !== -1;
 	},
-
-	/**
-	 * initialize or reconfigure css selector class
-	 * @param allowMultipleSelectors
-	 */
-	initCssSelector: function(allowMultipleSelectors) {
-		this.cssSelector = new CssSelector({
-			enableSmartTableSelector: true,
-			parent: this.parent,
-			allowMultipleSelectors:allowMultipleSelectors,
-			ignoredClasses: [
-				"-sitemap-select-item-selected",
-				"-sitemap-select-item-hover",
-				"-sitemap-parent",
-				"-web-scraper-img-on-top",
-				"-web-scraper-selection-active"
-			],
-			query: jQuery
-		});
-	},
-
-	previewSelector: function (elementCSSSelector) {
-
-		if(this.deferredCSSSelectorResponse.state() !== "rejected") {
-
-			this.highlightParent();
-			$(ElementQuery(elementCSSSelector, this.parent)).addClass('-sitemap-select-item-selected');
-			this.deferredCSSSelectorResponse.resolve();
-		}
-
-		return this.deferredCSSSelectorResponse.promise();
-	},
-
-	initGUI: function () {
-
-		this.highlightParent();
-
-		// all elements except toolbar
-		this.$allElements = $(this.allowedElements+":not(#-selector-toolbar):not(#-selector-toolbar *)", this.parent);
-		// allow selecting parent also
-		if(this.parent !== document.body) {
-			this.$allElements.push(this.parent);
-		}
-
-		this.bindElementHighlight();
-		this.bindElementSelection();
-		this.bindKeyboardSelectionManipulations();
-		this.attachToolbar();
-		this.bindMultipleGroupCheckbox();
-		this.bindMultipleGroupPopupHide();
-		this.bindMoveImagesToTop();
-	},
-
-	bindElementSelection: function () {
+	bindElementSelection: function() {
 		this.$allElements.bind("click.elementSelector", function (e) {
 			var element = e.currentTarget;
 			if(this.selectedElements.indexOf(element) === -1) {
 				this.selectedElements.push(element);
 			}
 			this.highlightSelectedElements();
-
 			// Cancel all other events
 			return false;
 		}.bind(this));
 	},
-
 	/**
 	 * Add to select elements the element that is under the mouse
 	 */
 	selectMouseOverElement: function() {
-
 		var element = this.mouseOverElement;
 		if(element) {
 			this.selectedElements.push(element);
 			this.highlightSelectedElements();
 		}
 	},
-
-	bindElementHighlight: function () {
-
+	bindElementHighlight: function() {
 		$(this.$allElements).bind("mouseover.elementSelector", function(e) {
 			// allow event bubbling for other event listeners but not for web scraper.
 			if(e.target !== e.currentTarget) {
 				return;
 			}
-
 			var element = e.currentTarget;
 			this.mouseOverElement = element;
 			$(element).addClass("-sitemap-select-item-hover");
@@ -177,17 +198,13 @@ ContentSelector.prototype = {
 			if(e.target !== e.currentTarget) {
 				return;
 			}
-
 			var element = e.currentTarget;
 			this.mouseOverElement = null;
 			$(element).removeClass("-sitemap-select-item-hover");
 		}.bind(this));
 	},
-
 	bindMoveImagesToTop: function() {
-
 		$("body").addClass("-web-scraper-selection-active");
-
 		// do this only when selecting images
 		if(this.allowedElements === 'img') {
 			$("img").filter(function(i, element) {
@@ -195,42 +212,34 @@ ContentSelector.prototype = {
 			}).addClass("-web-scraper-img-on-top");
 		}
 	},
-
 	unbindMoveImagesToTop: function() {
-
 		$("body.-web-scraper-selection-active").removeClass("-web-scraper-selection-active");
 		$("img.-web-scraper-img-on-top").removeClass("-web-scraper-img-on-top");
 	},
-
 	selectChild: function () {
 		this.top--;
 		if (this.top < 0) {
 			this.top = 0;
 		}
 	},
-	selectParent: function () {
+	selectParent: function() {
 		this.top++;
 	},
-
 	// User with keyboard arrows can select child or paret elements of selected elements.
-	bindKeyboardSelectionManipulations: function () {
-
+	bindKeyboardSelectionManipulations: function() {
 		// check for focus
 		var lastFocusStatus;
 		this.keyPressFocusInterval = setInterval(function() {
 			var focus = document.hasFocus();
 			if(focus === lastFocusStatus) return;
 			lastFocusStatus = focus;
-
 			$("#-selector-toolbar .key-button").toggleClass("hide", !focus);
 			$("#-selector-toolbar .key-events").toggleClass("hide", focus);
 		}.bind(this), 200);
 
-
 		// Using up/down arrows user can select elements from top of the
 		// selected element
 		$(document).bind("keydown.selectionManipulation", function (event) {
-
 			// select child C
 			if (event.keyCode === 67) {
 				this.animateClickedKey($("#-selector-toolbar .key-button-child"));
@@ -246,35 +255,28 @@ ContentSelector.prototype = {
 				this.animateClickedKey($("#-selector-toolbar .key-button-select"));
 				this.selectMouseOverElement();
 			}
-
 			this.highlightSelectedElements();
 		}.bind(this));
 	},
-
 	animateClickedKey: function(element) {
 		$(element).removeClass("clicked").removeClass("clicked-animation");
 		setTimeout(function() {
 			$(element).addClass("clicked");
-			setTimeout(function(){
+			setTimeout(function() {
 				$(element).addClass("clicked-animation");
-			},100);
-		},1);
-
+			}, 100);
+		}, 1);
 	},
-
-	highlightSelectedElements: function () {
+	highlightSelectedElements: function() {
 		try {
 			var resultCssSelector = this.getCurrentCSSSelector();
-
 			$("body #-selector-toolbar .selector").text(resultCssSelector);
 			// highlight selected elements
 			$(".-sitemap-select-item-selected").removeClass('-sitemap-select-item-selected');
 			$(ElementQuery(resultCssSelector, this.parent)).addClass('-sitemap-select-item-selected');
-		}
-		catch(err) {
+		} catch(err) {
 			if(err === "found multiple element groups, but allowMultipleSelectors disabled") {
 				console.log("multiple different element selection disabled");
-
 				this.showMultipleGroupPopup();
 				// remove last added element
 				this.selectedElements.pop();
@@ -282,99 +284,61 @@ ContentSelector.prototype = {
 			}
 		}
 	},
-
 	showMultipleGroupPopup: function() {
 		$("#-selector-toolbar .popover").attr("style", "display:block !important;");
 	},
-
 	hideMultipleGroupPopup: function() {
 		$("#-selector-toolbar .popover").attr("style", "");
 	},
-
 	bindMultipleGroupPopupHide: function() {
 		$("#-selector-toolbar .popover .close").click(this.hideMultipleGroupPopup.bind(this));
 	},
-
 	unbindMultipleGroupPopupHide: function() {
 		$("#-selector-toolbar .popover .close").unbind("click");
 	},
-
 	bindMultipleGroupCheckbox: function() {
 		$("#-selector-toolbar [name=diferentElementSelection]").change(function(e) {
 			if($(e.currentTarget).is(":checked")) {
 				this.initCssSelector(true);
-			}
-			else {
+			} else {
 				this.initCssSelector(false);
 			}
 		}.bind(this));
 	},
-	unbindMultipleGroupCheckbox: function(){
+	unbindMultipleGroupCheckbox: function() {
 		$("#-selector-toolbar .diferentElementSelection").unbind("change");
 	},
-
-	attachToolbar: function () {
-
-		var $toolbar = '<div id="-selector-toolbar">' +
-			'<div class="list-item"><div class="selector-container"><div class="selector"></div></div></div>' +
-			'<div class="input-group-addon list-item">' +
-				'<input type="checkbox" title="允许选择不同的类型元素" name="diferentElementSelection">' +
-				'<div class="popover top">' +
-				'<div class="close">×</div>' +
-				'<div class="arrow"></div>' +
-				'<div class="popover-content">' +
-				'<div class="txt">' +
-				'禁用不同类型的元素选择。如果你点击的元素也应该被包含，那么启用这个，然后再次点击元素。通常这是不需要的。' +
-				'</div>' +
-				'</div>' +
-				'</div>' +
-			'</div>' +
-			'<div class="list-item key-events"><div title="点这里开启按钮点击事件响应">开启点击事件</div></div>' +
-			'<div class="list-item key-button key-button-select hide" title="按下 S 键来选择本xpath节点">S</div>' +
-			'<div class="list-item key-button key-button-parent hide" title="按下 P 键来选择本xpath的父节点">P</div>' +
-			'<div class="list-item key-button key-button-child hide" title="按下 C 键来选择本xpath的子节点">C</div>' +
-			'<div class="list-item done-selecting-button">结束选取</div>' +
-			'</div>';
-		$("body").append($toolbar);
-
-		$("body #-selector-toolbar .done-selecting-button").click(function () {
-			this.selectionFinished();
-		}.bind(this));
-	},
-	highlightParent: function () {
+	highlightParent: function() {
 		// do not highlight parent if its the body
 		if(!$(this.parent).is("body") && !$(this.parent).is("#webpage")) {
 			$(this.parent).addClass("-sitemap-parent");
 		}
 	},
-
-	unbindElementSelection: function () {
+	unbindElementSelection: function() {
 		$(this.$allElements).unbind("click.elementSelector");
 		// remove highlighted element classes
 		this.unbindElementSelectionHighlight();
 	},
-	unbindElementSelectionHighlight: function () {
+	unbindElementSelectionHighlight: function() {
 		$(".-sitemap-select-item-selected").removeClass('-sitemap-select-item-selected');
 		$(".-sitemap-parent").removeClass('-sitemap-parent');
 	},
-	unbindElementHighlight: function () {
+	unbindElementHighlight: function() {
 		$(this.$allElements).unbind("mouseover.elementSelector")
 			.unbind("mouseout.elementSelector");
 	},
-	unbindKeyboardSelectionMaipulatios: function () {
+	unbindKeyboardSelectionMaipulatios: function() {
 		$(document).unbind("keydown.selectionManipulation");
 		clearInterval(this.keyPressFocusInterval);
 	},
-	removeToolbar: function () {
+	removeToolbar: function() {
 		$("body #-selector-toolbar a").unbind("click");
 		$("#-selector-toolbar").remove();
 	},
-
 	/**
 	 * Remove toolbar and unbind events
 	 */
 	removeGUI: function() {
-
 		this.unbindElementSelection();
 		this.unbindElementHighlight();
 		this.unbindKeyboardSelectionMaipulatios();
@@ -383,12 +347,9 @@ ContentSelector.prototype = {
 		this.unbindMoveImagesToTop();
 		this.removeToolbar();
 	},
-
-	selectionFinished: function () {
-
+	selectionFinished: function() {
 		var resultCssSelector = this.getCurrentCSSSelector();
-
-		this.deferredCSSSelectorResponse.resolve({
+		this.dfd.resolve({
 			CSSSelector: resultCssSelector
 		});
 	}

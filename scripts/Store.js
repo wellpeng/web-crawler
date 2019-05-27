@@ -1,6 +1,5 @@
 var Store = function (config) {
     this.config = config;
-
     // configure couchdb
     this.sitemapDb = new PouchDB(this.config.sitemapDb);
 };
@@ -26,11 +25,11 @@ StoreScrapeResultWriter.prototype = {
 
 Store.prototype = {
 	sanitizeSitemapDataDbName: function(dbName) {
-		return 'sitemap-data-'+dbName.replace(/[^a-z0-9_\$\(\)\+\-/]/gi, "_");
+		return 'sitemap-data-' + dbName.replace(/[^a-z0-9_\$\(\)\+\-/]/gi, "_");
 	},
 	getSitemapDataDbLocation: function(sitemapId) {
 		var dbName = this.sanitizeSitemapDataDbName(sitemapId);
-		return this.config.dataDb+dbName;
+		return this.config.dataDb + dbName;
 	},
 	getSitemapDataDb: function(sitemapId) {
 		var dbLocation = this.getSitemapDataDbLocation(sitemapId);
@@ -73,7 +72,6 @@ Store.prototype = {
 
         this.sitemapDb.remove(sitemap, function(err, response){
             // @TODO handle err
-
 			// delete sitemap data db
 			var dbLocation = this.getSitemapDataDbLocation(sitemap._id);
 			PouchDB.destroy(dbLocation, function() {

@@ -1,26 +1,24 @@
-var Config = function () {
-};
+var Config = function () {};
 
 Config.prototype = {
-	sitemapDb: '',
-	dataDb: '',
-	crawlerDb:'',
+	sitemapDb : '',
+	dataDb : '',
+	crawlerDb :'',
 
-	defaults: {
-		storageType: "local",
+	defaults : {
+		storageType : "local",
 		// this is where sitemap documents are stored
-		sitemapDb: "",
+		sitemapDb : "",
 		// this is where scraped data is stored.
 		// empty for local storage
-		dataDb: "",
-		crawlerDb :""
+		dataDb : "",
+		crawlerDb : ""
 	},
-
 	/**
 	 * Loads configuration from chrome extension sync storage
 	 */
 	loadConfiguration: function (callback) {
-		chrome.storage.sync.get(['sitemapDb', 'dataDb', 'storageType','crawlerDb'], function (items) {
+		chrome.storage.sync.get(['sitemapDb', 'dataDb', 'storageType', 'crawlerDb'], function (items) {
 			this.storageType = items.storageType || this.defaults.storageType;
 			if (this.storageType === 'local') {
 				this.sitemapDb = this.defaults.sitemapDb;
@@ -33,7 +31,6 @@ Config.prototype = {
 			callback();
 		}.bind(this));
 	},
-
 	/**
 	 * Saves configuration to chrome extension sync storage
 	 * @param {type} items

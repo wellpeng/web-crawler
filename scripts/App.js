@@ -1,3 +1,4 @@
+// entry for devtools page
 $(function () {
 	// init bootstrap alerts
 	$(".alert").alert();
